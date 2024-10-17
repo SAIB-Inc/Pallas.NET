@@ -94,8 +94,8 @@ static async void ExecuteN2nProtocol()
     }
 }
 
-// await Task.Run(ExecuteN2cProtocol);
-await Task.Run(ExecuteN2nProtocol);
+await Task.Run(ExecuteN2cProtocol);
+// await Task.Run(ExecuteN2nProtocol);
 
 while (true)
 {

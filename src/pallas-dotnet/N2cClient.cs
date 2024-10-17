@@ -98,7 +98,7 @@ public class N2cClient
                 NextResponse nextResponse = nextResponseAction switch
                 {
                     NextResponseAction.RollForward => new(nextResponseAction, tip, [.. nextResponseRs.blockCbor]),
-                    NextResponseAction.RollBack => new(nextResponseAction, tip, default!),
+                    NextResponseAction.RollBack => new(nextResponseAction, tip, [.. nextResponseRs.blockCbor]),
                     _ => default!
                 };
                 
