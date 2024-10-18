@@ -4,7 +4,7 @@ use pallas::{
     ledger::{
         addresses::{Address, ByronAddress},
         primitives::conway::{self, VrfCert},
-        traverse::{MultiEraHeader, MultiEraTx},
+        traverse::{MultiEraBlock, MultiEraHeader, MultiEraTx},
     },
     network::{
         facades::{NodeClient, PeerClient},
@@ -302,7 +302,43 @@ impl ClientWrapper {
                                     }),
                                     PallasPoint::Specific(slot, hash) => Some(Point { slot, hash }),
                                 },
-                                block_cbor: Some(block.0),
+                                block_cbor: {
+                                    let multiera_block =
+                                        MultiEraBlock::decode(&block.0).expect("Decoding failed");
+                                    match multiera_block {
+                                        MultiEraBlock::Byron(block) => {
+                                            let block_cbor =
+                                                pallas::codec::minicbor::to_vec(&block)
+                                                    .expect("Serialization failed");
+                                            Some(block_cbor)
+                                        }
+                                        MultiEraBlock::AlonzoCompatible(block, _) => {
+                                            let block_cbor =
+                                                pallas::codec::minicbor::to_vec(&block)
+                                                    .expect("Serialization failed");
+                                            Some(block_cbor)
+                                        }
+                                        MultiEraBlock::Babbage(block) => {
+                                            let block_cbor =
+                                                pallas::codec::minicbor::to_vec(&block)
+                                                    .expect("Serialization failed");
+                                            Some(block_cbor)
+                                        }
+                                        MultiEraBlock::EpochBoundary(block) => {
+                                            let block_cbor =
+                                                pallas::codec::minicbor::to_vec(&block)
+                                                    .expect("Serialization failed");
+                                            Some(block_cbor)
+                                        }
+                                        MultiEraBlock::Conway(block) => {
+                                            let block_cbor =
+                                                pallas::codec::minicbor::to_vec(&block)
+                                                    .expect("Serialization failed");
+                                            Some(block_cbor)
+                                        }
+                                        _ => None,
+                                    }
+                                },
                             },
                             chainsync::NextResponse::RollBackward(point, tip) => NextResponse {
                                 action: 2,
@@ -351,13 +387,15 @@ impl ClientWrapper {
                                         transaction_witness_sets:
                                             pallas::codec::utils::MaybeIndefArray::Def(vec![]),
                                         auxiliary_data_set: KeyValuePairs::Def(vec![]),
-                                        invalid_transactions: None,
+                                        invalid_transactions: Some(
+                                            pallas::codec::utils::MaybeIndefArray::Def(vec![]),
+                                        ),
                                     };
 
-                                    Some(
-                                        pallas::codec::minicbor::to_vec(&block)
-                                            .expect("Serialization failed"),
-                                    )
+                                    let block_cbor = pallas::codec::minicbor::to_vec(&block)
+                                        .expect("Serialization failed");
+
+                                    Some(block_cbor)
                                 },
                             },
                             chainsync::NextResponse::Await => NextResponse {
@@ -411,13 +449,54 @@ impl ClientWrapper {
                                                 Some(Point { slot, hash })
                                             }
                                         },
-                                        block_cbor: ClientWrapper::fetch_block(
-                                            &mut client.blockfetch,
-                                            Point {
-                                                slot: h.slot(),
-                                                hash: h.hash().to_vec(),
-                                            },
-                                        ),
+                                        block_cbor: {
+                                            {
+                                                let block = ClientWrapper::fetch_block(
+                                                    &mut client.blockfetch,
+                                                    Point {
+                                                        slot: h.slot(),
+                                                        hash: h.hash().to_vec(),
+                                                    },
+                                                )
+                                                .unwrap();
+
+                                                let multiera_block = MultiEraBlock::decode(&block)
+                                                    .expect("Decoding failed");
+                                                match multiera_block {
+                                                    MultiEraBlock::Byron(block) => {
+                                                        let block_cbor =
+                                                            pallas::codec::minicbor::to_vec(&block)
+                                                                .expect("Serialization failed");
+                                                        Some(block_cbor)
+                                                    }
+                                                    MultiEraBlock::AlonzoCompatible(block, _) => {
+                                                        let block_cbor =
+                                                            pallas::codec::minicbor::to_vec(&block)
+                                                                .expect("Serialization failed");
+                                                        Some(block_cbor)
+                                                    }
+                                                    MultiEraBlock::Babbage(block) => {
+                                                        let block_cbor =
+                                                            pallas::codec::minicbor::to_vec(&block)
+                                                                .expect("Serialization failed");
+                                                        Some(block_cbor)
+                                                    }
+                                                    MultiEraBlock::EpochBoundary(block) => {
+                                                        let block_cbor =
+                                                            pallas::codec::minicbor::to_vec(&block)
+                                                                .expect("Serialization failed");
+                                                        Some(block_cbor)
+                                                    }
+                                                    MultiEraBlock::Conway(block) => {
+                                                        let block_cbor =
+                                                            pallas::codec::minicbor::to_vec(&block)
+                                                                .expect("Serialization failed");
+                                                        Some(block_cbor)
+                                                    }
+                                                    _ => None,
+                                                }
+                                            }
+                                        },
                                     },
                                     Err(e) => {
                                         println!("chain_sync_next error: {:?}", e);
