@@ -1,4 +1,4 @@
-﻿namespace PallasDotnet;
+﻿namespace PallasDotnet.Models;
 
 public record NetworkMagic
 {
