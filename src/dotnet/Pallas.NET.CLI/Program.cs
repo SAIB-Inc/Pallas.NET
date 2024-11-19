@@ -2,6 +2,7 @@
 using PallasDotnet;
 using PallasDotnet.Models;
 using PallasDotnet.Models.Enums;
+using Microsoft.Extensions.Configuration;
 
 static double GetCurrentMemoryUsageInMB()
 {
@@ -16,8 +17,14 @@ static double GetCurrentMemoryUsageInMB()
     return memoryUsedMb;
 }
 
-string clientConnection = "/Users/gantuangcoc98/.dmtr/tmp/nebulous-audience-903991/mainnet-mr1dcc.socket";
-string nodeConnection = "1.tcp.ap.ngrok.io:25317";
+var configuration = new ConfigurationBuilder()
+    .SetBasePath(AppContext.BaseDirectory)
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .Build();
+
+// Set client/node connection config
+string clientConnection = configuration["CardanoClientConnection"] ?? "/Users/gantuangcoc98/.dmtr/tmp/nebulous-audience-903991/mainnet-mr1dcc.socket";
+string nodeConnection = configuration["CardanoNodeConnection"] ?? "1.tcp.ap.ngrok.io:25317";
 
 // N2C Protocol Implementation
 async void ExecuteN2cProtocol()
@@ -103,8 +110,9 @@ async void ExecuteN2nProtocol()
     }
 }
 
-await Task.Run(ExecuteN2cProtocol);
-// await Task.Run(ExecuteN2nProtocol);
+// Test either Client or Node protocol
+// await Task.Run(ExecuteN2cProtocol);
+await Task.Run(ExecuteN2nProtocol);
 
 while (true)
 {

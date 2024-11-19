@@ -3,6 +3,7 @@ using PallasDotnet.Models.Enums;
 using PallasPoint = PallasDotnetRs.PallasDotnetRs.Point;
 using ClientWrapper = PallasDotnetRs.PallasDotnetRs.ClientWrapper;
 using NextResponseRs = PallasDotnetRs.PallasDotnetRs.NextResponse;
+using PallasDotnet.Utils;
 
 namespace PallasDotnet;
 
@@ -99,7 +100,7 @@ public class Client
             else
             {
                 NextResponseAction nextResponseAction = (NextResponseAction)nextResponseRs.action;
-                Point tip = Utils.MapPallasPoint(nextResponseRs.tip);
+                Point tip = ClientUtils.MapPallasPoint(nextResponseRs.tip);
 
                 NextResponse nextResponse = nextResponseAction switch
                 {
@@ -170,7 +171,7 @@ public class Client
         PallasPoint tip = PallasDotnetRs.PallasDotnetRs.GetTip(_clientWrapper.Value);
         
         return await Task.Run(() => {
-            return Utils.MapPallasPoint(tip);
+            return ClientUtils.MapPallasPoint(tip);
         });
     }
 }

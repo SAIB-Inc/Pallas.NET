@@ -1,4 +1,4 @@
-﻿namespace PallasDotnet.Models;
+﻿namespace PallasDotnet.Models.Enums;
 
 public enum NextResponseAction
 {
