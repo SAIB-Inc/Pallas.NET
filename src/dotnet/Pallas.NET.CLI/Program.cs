@@ -37,10 +37,12 @@ async void ExecuteN2cProtocol()
         Console.WriteLine($"Tip: {tip.Hash}");
     }
 
-    await foreach (NextResponse? nextResponse in client.StartChainSyncAsync(new Point(
-        140474748,
-        "72028be5129ea06bf47c7939efdd93ee4d7364f61b2512c426ef68780ee80d81"
-    )))
+    await foreach (NextResponse? nextResponse in client.StartChainSyncAsync(
+        [
+            new Point(140474748, "72028be5129ea06bf47c7939efdd93ee4d7364f61b2512c426ef68780ee80d81"),
+            new Point(140484806, "dd2b4c7671600f612c8cd5ba751f7baeb855ee92ebc8092a6a8415fd7eff2bc5")
+        ]
+    ))
     {
         if (nextResponse.Action == NextResponseAction.Await)
         {
@@ -85,10 +87,12 @@ async void ExecuteN2nProtocol()
         Console.WriteLine($"Tip: {tip.Hash}");
     }
 
-    await foreach (NextResponse? nextResponse in n2nClient.StartChainSyncAsync(new Point(
-        57751092,
-        "d924387268359420990f8e71b9e89f0e6e9fa640ccd69acc5bf410ea5911366d"
-    )))
+    await foreach (NextResponse? nextResponse in n2nClient.StartChainSyncAsync(
+        [
+            new Point(57751092, "d924387268359420990f8e71b9e89f0e6e9fa640ccd69acc5bf410ea5911366d"),
+            new Point(140484806, "dd2b4c7671600f612c8cd5ba751f7baeb855ee92ebc8092a6a8415fd7eff2bc5")
+        ]
+    ))
     {
         if (nextResponse.Action == NextResponseAction.Await)
         {
@@ -111,8 +115,8 @@ async void ExecuteN2nProtocol()
 }
 
 // Test either Client or Node protocol
-// await Task.Run(ExecuteN2cProtocol);
-await Task.Run(ExecuteN2nProtocol);
+await Task.Run(ExecuteN2cProtocol);
+// await Task.Run(ExecuteN2nProtocol);
 
 while (true)
 {

@@ -46,22 +46,18 @@ public class Client
         return await GetTipAsync();
     }
 
-    public async IAsyncEnumerable<NextResponse> StartChainSyncAsync(Point? intersection = null)
+    public async IAsyncEnumerable<NextResponse> StartChainSyncAsync(IEnumerable<Point>? known_points = null)
     {
         if (_clientWrapper is null)
         {
             throw new Exception("Not connected to node");
         }
 
-        if (intersection is not null)
+        if (known_points is not null)
         {
             await Task.Run(() =>
             {
-                PallasDotnetRs.PallasDotnetRs.FindIntersect(_clientWrapper.Value, new PallasPoint
-                {
-                    slot = intersection.Slot,
-                    hash = [.. Convert.FromHexString(intersection.Hash)]
-                });
+                PallasDotnetRs.PallasDotnetRs.FindIntersect(_clientWrapper.Value, (IReadOnlyCollection<PallasPoint>)known_points);
             });
         }
 
@@ -75,11 +71,7 @@ public class Client
                 if (ShouldReconnect)
                 {
                     _clientWrapper = PallasDotnetRs.PallasDotnetRs.Connect(_connection, _magicNumber, (byte)_clientType);
-                    PallasDotnetRs.PallasDotnetRs.FindIntersect(_clientWrapper.Value, new PallasPoint
-                    {
-                        slot = _lastSlot,
-                        hash = [.. _lastHash]
-                    });
+                    PallasDotnetRs.PallasDotnetRs.FindIntersect(_clientWrapper.Value, (IReadOnlyCollection<PallasPoint>)known_points);
                     Reconnected?.Invoke(this, EventArgs.Empty);
                 }
                 else

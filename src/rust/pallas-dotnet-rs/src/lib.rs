@@ -59,6 +59,16 @@ pub struct Point {
     hash: Vec<u8>,
 }
 
+impl Point {
+    fn to_pallas_point(&self) -> PallasPoint {
+        if self.slot == 0 && self.hash.is_empty() {
+            PallasPoint::Origin
+        } else {
+            PallasPoint::Specific(self.slot, self.hash.clone())
+        }
+    }
+}
+
 #[derive(Net)]
 pub struct NextResponse {
     action: u8,
@@ -208,11 +218,11 @@ impl ClientWrapper {
     }
 
     #[net]
-    pub fn find_intersect(client_wrapper: ClientWrapper, known_point: Point) -> Option<Point> {
-        ClientWrapper::find_intersect(client_wrapper, known_point)
+    pub fn find_intersect(client_wrapper: ClientWrapper, known_points: Vec<Point>) -> Option<Point> {
+        ClientWrapper::find_intersect(client_wrapper, known_points)
     }
 
-    pub fn find_intersect(client_wrapper: ClientWrapper, known_point: Point) -> Option<Point> {
+    pub fn find_intersect(client_wrapper: ClientWrapper, known_points: Vec<Point>) -> Option<Point> {
         unsafe {
             match client_wrapper.client {
                 1 => {
@@ -222,13 +232,18 @@ impl ClientWrapper {
                     let mut _client = Box::from_raw(client_ptr);
 
                     let client = _client.chainsync();
+                    
+                    let mut mapped_points = PallasUtility::map_points_to_pallas((known_points));
 
-                    let known_points =
-                        vec![PallasPoint::Specific(known_point.slot, known_point.hash)];
+                    mapped_points.sort_by(|a, b| match (a, b) {
+                        (PallasPoint::Specific(slot_a, _), PallasPoint::Specific(slot_b, _)) => slot_a.cmp(slot_b),
+                        _ => std::cmp::Ordering::Equal
+                    });
 
                     // Get the intersecting point and the tip
                     let (intersect_point, _tip) =
-                        RT.block_on(async { client.find_intersect(known_points).await.unwrap() });
+                        RT.block_on(async { client.find_intersect(mapped_points).await.unwrap() 
+                        });
 
                     // Convert client back to a raw pointer for future use
                     let _ = Box::into_raw(_client);
@@ -246,13 +261,14 @@ impl ClientWrapper {
                     let client_ptr = client_wrapper.client_ptr as *mut PeerClient;
                     let mut client = Box::from_raw(client_ptr);
 
-                    let known_points =
-                        vec![PallasPoint::Specific(known_point.slot, known_point.hash)];
-
                     let (intersect_point, _) = RT.block_on(async {
                         client
                             .chainsync()
-                            .find_intersect(known_points)
+                            .find_intersect(
+                                known_points
+                                    .into_iter()
+                                    .map(|p| p.to_pallas_point())
+                                    .collect())
                             .await
                             .unwrap()
                     });
@@ -714,5 +730,9 @@ impl PallasUtility {
                 .unwrap()
                 .to_base58(),
         }
+    }
+
+    pub fn map_points_to_pallas(points: Vec<Point>) -> Vec<PallasPoint> {
+        points.into_iter().map(|p| p.to_pallas_point()).collect()
     }
 }
