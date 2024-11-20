@@ -1,6 +1,6 @@
-﻿using PallasDotnet.Models.Enums;
+﻿using Pallas.NET.Models.Enums;
 
-namespace PallasDotnet.Models;
+namespace Pallas.NET.Models;
 
 public record NextResponse(
     NextResponseAction Action,

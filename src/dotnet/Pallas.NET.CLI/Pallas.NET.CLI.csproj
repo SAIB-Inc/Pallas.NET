@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\pallas-dotnet\pallas-dotnet.csproj" />
+    <ProjectReference Include="..\Pallas.NET\Pallas.NET.csproj" />
   </ItemGroup>
 
   <ItemGroup>
