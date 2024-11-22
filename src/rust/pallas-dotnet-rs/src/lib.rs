@@ -218,35 +218,38 @@ impl ClientWrapper {
     }
 
     #[net]
-    pub fn find_intersect(client_wrapper: ClientWrapper, known_points: Vec<Point>) -> Option<Point> {
-        ClientWrapper::find_intersect(client_wrapper, known_points)
+    pub fn find_intersect(client_wrapper: ClientWrapper, points: Vec<Point>) -> Option<Point> {
+        let _points = points
+            .into_iter()
+            .map(|p| match p.slot {
+                0 => PallasPoint::Origin,
+                _ => PallasPoint::Specific(p.slot, p.hash)
+            })
+            .collect();
+
+        ClientWrapper::find_intersect(client_wrapper, _points)
     }
 
-    pub fn find_intersect(client_wrapper: ClientWrapper, known_points: Vec<Point>) -> Option<Point> {
+    pub fn find_intersect(client_wrapper: ClientWrapper, points: Vec<PallasPoint>) -> Option<Point> {
         unsafe {
             match client_wrapper.client {
                 1 => {
                     let client_ptr = client_wrapper.client_ptr as *mut NodeClient;
 
                     // Convert the raw pointer back to a Box to deallocate the memory
-                    let mut _client = Box::from_raw(client_ptr);
-
-                    let client = _client.chainsync();
-                    
-                    let mut mapped_points = PallasUtility::map_points_to_pallas((known_points));
-
-                    mapped_points.sort_by(|a, b| match (a, b) {
-                        (PallasPoint::Specific(slot_a, _), PallasPoint::Specific(slot_b, _)) => slot_a.cmp(slot_b),
-                        _ => std::cmp::Ordering::Equal
-                    });
+                    let mut client = Box::from_raw(client_ptr);
 
                     // Get the intersecting point and the tip
-                    let (intersect_point, _tip) =
-                        RT.block_on(async { client.find_intersect(mapped_points).await.unwrap() 
-                        });
+                    let (intersect_point, _tip) = RT.block_on(async { 
+                        client
+                            .chainsync()
+                            .find_intersect(points)
+                            .await
+                            .unwrap() 
+                    });
 
                     // Convert client back to a raw pointer for future use
-                    let _ = Box::into_raw(_client);
+                    let _ = Box::into_raw(client);
 
                     // Match on the intersecting point
                     intersect_point.map(|pallas_point| match pallas_point {
@@ -264,11 +267,7 @@ impl ClientWrapper {
                     let (intersect_point, _) = RT.block_on(async {
                         client
                             .chainsync()
-                            .find_intersect(
-                                known_points
-                                    .into_iter()
-                                    .map(|p| p.to_pallas_point())
-                                    .collect())
+                            .find_intersect(points)
                             .await
                             .unwrap()
                     });

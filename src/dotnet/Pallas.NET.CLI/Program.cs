@@ -37,12 +37,13 @@ async void ExecuteN2cProtocol()
         Console.WriteLine($"Tip: {tip.Hash}");
     }
 
-    await foreach (NextResponse? nextResponse in client.StartChainSyncAsync(
-        [
-            new Point(140474748, "72028be5129ea06bf47c7939efdd93ee4d7364f61b2512c426ef68780ee80d81"),
-            new Point(140484806, "dd2b4c7671600f612c8cd5ba751f7baeb855ee92ebc8092a6a8415fd7eff2bc5")
-        ]
-    ))
+    List<Point> points = 
+    [
+        new(140474748, "72028be5129ea06bf47c7939efdd93ee4d7364f61b2512c426ef68780ee80d81"),
+        new(11127345, "17b1b002a854f4120385d760344db700599a3ceefab454051a226b11309b6417")
+    ];
+
+    await foreach (NextResponse? nextResponse in client.StartChainSyncAsync(points))
     {
         if (nextResponse.Action == NextResponseAction.Await)
         {
@@ -87,12 +88,13 @@ async void ExecuteN2nProtocol()
         Console.WriteLine($"Tip: {tip.Hash}");
     }
 
-    await foreach (NextResponse? nextResponse in n2nClient.StartChainSyncAsync(
-        [
-            new Point(57751092, "d924387268359420990f8e71b9e89f0e6e9fa640ccd69acc5bf410ea5911366d"),
-            new Point(140484806, "dd2b4c7671600f612c8cd5ba751f7baeb855ee92ebc8092a6a8415fd7eff2bc5")
-        ]
-    ))
+    List<Point> points = 
+    [
+        new(140474748, "72028be5129ea06bf47c7939efdd93ee4d7364f61b2512c426ef68780ee80d81"),
+        new(11127345, "17b1b002a854f4120385d760344db700599a3ceefab454051a226b11309b6417")
+    ];
+
+    await foreach (NextResponse? nextResponse in n2nClient.StartChainSyncAsync(points))
     {
         if (nextResponse.Action == NextResponseAction.Await)
         {

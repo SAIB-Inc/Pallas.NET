@@ -67,9 +67,9 @@ namespace PallasDotnetRs
         }
         public static Point FindIntersect(
             ClientWrapper clientWrapper,
-            IReadOnlyCollection<Point> knownPoints
+            IReadOnlyCollection<Point> points
         ) {
-            return _DecodeOption(_FnFindIntersect(_StructClientWrapper.Encode(clientWrapper),_AllocSlice<Point, _StructPoint>(knownPoints, 24, 8, _arg3 => _StructPoint.Encode(_arg3))), _arg4 => (_arg4).Decode());
+            return _DecodeOption(_FnFindIntersect(_StructClientWrapper.Encode(clientWrapper),_AllocSlice<Point, _StructPoint>(points, 24, 8, _arg3 => _StructPoint.Encode(_arg3))), _arg4 => (_arg4).Decode());
         }
         public static NextResponse ChainSyncNext(
             ClientWrapper clientWrapper
@@ -205,7 +205,7 @@ namespace PallasDotnetRs
         [DllImport("pallas_dotnet_rs", EntryPoint = "rnet_export_find_intersect", CallingConvention = CallingConvention.Cdecl)]
         private static extern _RawTuple0 _FnFindIntersect(
             _StructClientWrapper clientWrapper,
-            _RawSlice knownPoints
+            _RawSlice points
         );
         [DllImport("pallas_dotnet_rs", EntryPoint = "rnet_export_chain_sync_next", CallingConvention = CallingConvention.Cdecl)]
         private static extern _StructNextResponse _FnChainSyncNext(

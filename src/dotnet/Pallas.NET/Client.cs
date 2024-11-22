@@ -3,7 +3,7 @@ using Pallas.NET.Models.Enums;
 using PallasPoint = PallasDotnetRs.PallasDotnetRs.Point;
 using ClientWrapper = PallasDotnetRs.PallasDotnetRs.ClientWrapper;
 using NextResponseRs = PallasDotnetRs.PallasDotnetRs.NextResponse;
-using Pallas.NET.Utils;
+using Pallas.NET.Extensions;
 
 namespace Pallas.NET;
 
@@ -46,18 +46,23 @@ public class Client
         return await GetTipAsync();
     }
 
-    public async IAsyncEnumerable<NextResponse> StartChainSyncAsync(IEnumerable<Point>? known_points = null)
+    public async IAsyncEnumerable<NextResponse> StartChainSyncAsync(List<Point> points)
     {
         if (_clientWrapper is null)
         {
             throw new Exception("Not connected to node");
         }
 
-        if (known_points is not null)
+        if (points.Count > 0)
         {
+            IReadOnlyCollection<PallasPoint> _points = points.Select(point => point.ToPallasPoint()).ToList().AsReadOnly();
+
             await Task.Run(() =>
             {
-                PallasDotnetRs.PallasDotnetRs.FindIntersect(_clientWrapper.Value, (IReadOnlyCollection<PallasPoint>)known_points);
+                PallasPoint _intersection = PallasDotnetRs.PallasDotnetRs.FindIntersect(_clientWrapper.Value, _points);
+
+                _lastSlot = _intersection.slot;
+                _lastHash = _intersection.hash is not null ? [.._intersection.hash] : [];
             });
         }
 
@@ -70,8 +75,14 @@ public class Client
             {
                 if (ShouldReconnect)
                 {
+                    IReadOnlyCollection<PallasPoint> _points = points.Select(point => point.ToPallasPoint()).ToList().AsReadOnly();
+
                     _clientWrapper = PallasDotnetRs.PallasDotnetRs.Connect(_connection, _magicNumber, (byte)_clientType);
-                    PallasDotnetRs.PallasDotnetRs.FindIntersect(_clientWrapper.Value, (IReadOnlyCollection<PallasPoint>)known_points);
+                    PallasPoint _intersection = PallasDotnetRs.PallasDotnetRs.FindIntersect(_clientWrapper.Value, _points);
+
+                    _lastSlot = _intersection.slot;
+                    _lastHash = [.._intersection.hash];
+
                     Reconnected?.Invoke(this, EventArgs.Empty);
                 }
                 else
@@ -92,7 +103,7 @@ public class Client
             else
             {
                 NextResponseAction nextResponseAction = (NextResponseAction)nextResponseRs.action;
-                Point tip = ClientUtils.MapPallasPoint(nextResponseRs.tip);
+                Point tip = nextResponseRs.tip.ToPoint();
 
                 NextResponse nextResponse = nextResponseAction switch
                 {
@@ -163,7 +174,7 @@ public class Client
         PallasPoint tip = PallasDotnetRs.PallasDotnetRs.GetTip(_clientWrapper.Value);
         
         return await Task.Run(() => {
-            return ClientUtils.MapPallasPoint(tip);
+            return tip.ToPoint();
         });
     }
 }
