@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics;
-using PallasDotnet;
-using PallasDotnet.Models;
-using PallasDotnet.Models.Enums;
+using Pallas.NET.Models;
+using Pallas.NET.Models.Enums;
 using Microsoft.Extensions.Configuration;
+using Pallas.NET;
 
 static double GetCurrentMemoryUsageInMB()
 {

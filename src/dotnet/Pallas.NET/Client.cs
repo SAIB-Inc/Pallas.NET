@@ -1,11 +1,11 @@
-using PallasDotnet.Models;
-using PallasDotnet.Models.Enums;
+using Pallas.NET.Models;
+using Pallas.NET.Models.Enums;
 using PallasPoint = PallasDotnetRs.PallasDotnetRs.Point;
 using ClientWrapper = PallasDotnetRs.PallasDotnetRs.ClientWrapper;
 using NextResponseRs = PallasDotnetRs.PallasDotnetRs.NextResponse;
-using PallasDotnet.Utils;
+using Pallas.NET.Utils;
 
-namespace PallasDotnet;
+namespace Pallas.NET;
 
 public class Client
 {

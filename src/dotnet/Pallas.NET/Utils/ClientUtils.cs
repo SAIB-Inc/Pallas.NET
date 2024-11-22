@@ -1,6 +1,6 @@
-using PallasDotnet.Models;
+using Pallas.NET.Models;
 
-namespace PallasDotnet.Utils;
+namespace Pallas.NET.Utils;
 
 public static class ClientUtils
 {
