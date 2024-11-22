@@ -1,8 +1,8 @@
-using PallasDotnet.Models;
+using Pallas.NET.Models;
 
-namespace PallasDotnet;
+namespace Pallas.NET.Utils;
 
-public class Utils
+public static class ClientUtils
 {
     public static Point MapPallasPoint(PallasDotnetRs.PallasDotnetRs.Point rsPoint)
         => new(rsPoint.slot, Convert.ToHexString(rsPoint.hash.ToArray()));

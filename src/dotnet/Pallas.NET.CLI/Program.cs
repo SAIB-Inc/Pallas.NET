@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
-using PallasDotnet;
-using PallasDotnet.Models;
+using Pallas.NET.Models;
+using Pallas.NET.Models.Enums;
+using Microsoft.Extensions.Configuration;
+using Pallas.NET;
 
 static double GetCurrentMemoryUsageInMB()
 {
@@ -15,15 +17,29 @@ static double GetCurrentMemoryUsageInMB()
     return memoryUsedMb;
 }
 
-// N2C Protocol Implementation
-static async void ExecuteN2cProtocol()
-{
-    N2cClient? nodeClient = new();
-    Point? tip = await nodeClient.ConnectAsync("/home/rawriclark/CardanoPreview/pool/txpipe/relay1/ipc/node.socket", NetworkMagic.PREVIEW);
+var configuration = new ConfigurationBuilder()
+    .SetBasePath(AppContext.BaseDirectory)
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .Build();
 
-    await foreach (NextResponse? nextResponse in nodeClient.StartChainSyncAsync(new Point(
-        57762827,
-        "7063cb55f1e55fd80aca1ee582a7b489856d704b46e213e268bad14a56f09f35"
+// Set client/node connection config
+string clientConnection = configuration["CardanoClientConnection"] ?? "/Users/gantuangcoc98/.dmtr/tmp/nebulous-audience-903991/mainnet-mr1dcc.socket";
+string nodeConnection = configuration["CardanoNodeConnection"] ?? "1.tcp.ap.ngrok.io:25317";
+
+// N2C Protocol Implementation
+async void ExecuteN2cProtocol()
+{
+    Client? client = new();
+    Point? tip = await client.ConnectAsync(clientConnection, NetworkMagic.MAINNET, ClientType.N2C);
+
+    if (tip is not null)
+    {
+        Console.WriteLine($"Tip: {tip.Hash}");
+    }
+
+    await foreach (NextResponse? nextResponse in client.StartChainSyncAsync(new Point(
+        140474748,
+        "72028be5129ea06bf47c7939efdd93ee4d7364f61b2512c426ef68780ee80d81"
     )))
     {
         if (nextResponse.Action == NextResponseAction.Await)
@@ -59,10 +75,10 @@ static async void ExecuteN2cProtocol()
 }
 
 // N2N Protocol Implementation
-static async void ExecuteN2nProtocol()
+async void ExecuteN2nProtocol()
 {
-    N2nClient? n2nClient = new();
-    Point? tip = await n2nClient.ConnectAsync("1.tcp.ap.ngrok.io:25317", NetworkMagic.PREVIEW);
+    Client? n2nClient = new();
+    Point? tip = await n2nClient.ConnectAsync(nodeConnection, NetworkMagic.PREVIEW, ClientType.N2N);
 
     if (tip is not null)
     {
@@ -94,6 +110,7 @@ static async void ExecuteN2nProtocol()
     }
 }
 
+// Test either Client or Node protocol
 await Task.Run(ExecuteN2cProtocol);
 // await Task.Run(ExecuteN2nProtocol);
 
