@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ ! -d "./lib" ]; then
+    mkdir ./lib
+fi
+
 # Function to build and copy for Linux
 build_for_linux() {
     cargo build --release --manifest-path ../../rust/pallas-dotnet-rs/Cargo.toml
@@ -17,13 +21,13 @@ build_for_macos() {
 # Check the operating system
 OS="`uname`"
 case $OS in
-  'Linux')
-    # Linux-specific commands
-    build_for_linux
+    'Linux')
+        # Linux-specific commands
+        build_for_linux
     ;;
-  'Darwin')
-    # macOS-specific commands
-    build_for_macos
+    'Darwin')
+        # macOS-specific commands
+        build_for_macos
     ;;
-  *) ;;
+    *) ;;
 esac
