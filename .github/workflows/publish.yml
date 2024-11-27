@@ -68,6 +68,9 @@ jobs:
       - name: Setup rnet-gen
         run: cargo install rnet-gen
 
+      - name: Create lib directory
+        run: mkdir -p ${{ github.workspace }}/src/dotnet/Pallas.NET/lib
+
       - name: Download Linux artifact
         uses: actions/download-artifact@v4
         with:
