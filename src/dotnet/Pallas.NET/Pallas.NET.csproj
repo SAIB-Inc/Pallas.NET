@@ -51,7 +51,7 @@
     <Content Include="lib/libpallas_dotnet_rs.dylib">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <PackageCopyToOutput>true</PackageCopyToOutput>
-      <PackagePath>runtimes/aarch64/native</PackagePath>
+      <PackagePath>runtimes/osx-arm64/native</PackagePath>
       <pack>true</pack>
     </Content>
   </ItemGroup>
