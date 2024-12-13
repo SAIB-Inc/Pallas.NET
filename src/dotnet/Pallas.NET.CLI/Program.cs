@@ -24,7 +24,7 @@ var configuration = new ConfigurationBuilder()
 
 // Set client/node connection config
 string clientConnection = configuration["CardanoClientConnection"] ?? "/Users/gantuangcoc98/.dmtr/tmp/nebulous-audience-903991/mainnet-mr1dcc.socket";
-string nodeConnection = configuration["CardanoNodeConnection"] ?? "1.tcp.ap.ngrok.io:25317";
+string nodeConnection = configuration["CardanoNodeConnection"] ?? "backbone.cardano.iog.io:3001";
 
 // N2C Protocol Implementation
 async void ExecuteN2cProtocol()
@@ -39,8 +39,7 @@ async void ExecuteN2cProtocol()
 
     List<Point> points = 
     [
-        new(140474748, "72028be5129ea06bf47c7939efdd93ee4d7364f61b2512c426ef68780ee80d81"),
-        new(11127345, "17b1b002a854f4120385d760344db700599a3ceefab454051a226b11309b6417")
+        new(140474748, "72028be5129ea06bf47c7939efdd93ee4d7364f61b2512c426ef68780ee80d81")
     ];
 
     await foreach (NextResponse? nextResponse in client.StartChainSyncAsync(points))
@@ -54,25 +53,25 @@ async void ExecuteN2cProtocol()
             string action = nextResponse.Action == NextResponseAction.RollBack ? "Rolling back..." : "Rolling forward...";
 
             Console.WriteLine(action);
-            Console.WriteLine($"Slot: {nextResponse.Tip.Slot} Hash: {nextResponse.Tip.Hash}");
+            Console.WriteLine($"Slot: {nextResponse.Point.Slot} Hash: {nextResponse.Point.Hash}");
             
-            if (nextResponse.Action == NextResponseAction.RollForward)
-            {
-                Console.WriteLine("Block:");
-                string cborHex = Convert.ToHexString(nextResponse.BlockCbor);
-                Console.WriteLine(cborHex);
-            }
-            Console.WriteLine(action);
-            Console.WriteLine($"Slot: {nextResponse.Tip.Slot} Hash: {nextResponse.Tip.Hash}");
-            
-            if (nextResponse.Action == NextResponseAction.RollForward)
-            {
-                Console.WriteLine("Block:");
-                string cborHex = Convert.ToHexString(nextResponse.BlockCbor);
-                Console.WriteLine(cborHex);
-            }
+            // if (nextResponse.Action == NextResponseAction.RollForward)
+            // {
+            //     Console.WriteLine("Block:");
+            //     string cborHex = Convert.ToHexString(nextResponse.BlockCbor);
+            //     Console.WriteLine(cborHex);
+            // }
+
+            // if (nextResponse.Action == NextResponseAction.RollBack)
+            // {
+            //     Console.WriteLine("Block:");
+            //     string cborHex = Convert.ToHexString(nextResponse.BlockCbor);
+            //     Console.WriteLine(cborHex);
+            // }
 
             Console.WriteLine("--------------------------------------------------------------------------------");
+            
+            Environment.Exit(0);
         }
     }
 }
@@ -105,7 +104,7 @@ async void ExecuteN2nProtocol()
             string action = nextResponse.Action == NextResponseAction.RollBack ? "Rolling back..." : "Rolling forward...";
 
             Console.WriteLine(action);
-            Console.WriteLine($"Slot: {nextResponse.Tip.Slot} Hash: {nextResponse.Tip.Hash}");
+            Console.WriteLine($"Slot: {nextResponse.Point.Slot} Hash: {nextResponse.Point.Hash}");
 
             Console.WriteLine("Block:");
             string cborHex = Convert.ToHexString(nextResponse.BlockCbor);

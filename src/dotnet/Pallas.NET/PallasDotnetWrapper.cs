@@ -22,7 +22,7 @@ namespace PallasDotnetRs
         }
         public struct NextResponse {
             public byte action;
-            public Point tip;
+            public Point point;
             public List<byte> blockCbor;
         }
         public struct ClientWrapper {
@@ -130,19 +130,19 @@ namespace PallasDotnetRs
         [StructLayout(LayoutKind.Sequential)]
         private struct _StructNextResponse {
             public byte action;
-            public _RawTuple0 tip;
+            public _RawTuple0 point;
             public _RawTuple1 blockCbor;
             public static _StructNextResponse Encode(NextResponse structArg) {
                 return new _StructNextResponse {
                     action = structArg.action,
-                    tip = _EncodeOption(structArg.tip, _arg12 => _StructPoint.Encode(_arg12)),
+                    point = _EncodeOption(structArg.point, _arg12 => _StructPoint.Encode(_arg12)),
                     blockCbor = _EncodeOption(structArg.blockCbor, _arg13 => _AllocSlice<byte, byte>(_arg13, 1, 1, _arg14 => _arg14))
                 };
             }
             public NextResponse Decode() {
                 return new NextResponse {
                     action = this.action,
-                    tip = _DecodeOption(this.tip, _arg15 => (_arg15).Decode()),
+                    point = _DecodeOption(this.point, _arg15 => (_arg15).Decode()),
                     blockCbor = _DecodeOption(this.blockCbor, _arg16 => _FreeSlice<byte, byte, List<byte>>(_arg16, 1, 1, _arg17 => _arg17))
                 };
             }

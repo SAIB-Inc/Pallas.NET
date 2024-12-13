@@ -72,7 +72,7 @@ impl Point {
 #[derive(Net)]
 pub struct NextResponse {
     action: u8,
-    tip: Option<Point>,
+    point: Option<Point>,
     block_cbor: Option<Vec<u8>>,
 }
 
@@ -308,14 +308,44 @@ impl ClientWrapper {
 
                     let next_response = match result {
                         Ok(next) => match next {
-                            chainsync::NextResponse::RollForward(block, tip) => NextResponse {
+                            chainsync::NextResponse::RollForward(block, _) => NextResponse {
                                 action: 1,
-                                tip: match tip.0 {
-                                    PallasPoint::Origin => Some(Point {
-                                        slot: 0,
-                                        hash: vec![],
-                                    }),
-                                    PallasPoint::Specific(slot, hash) => Some(Point { slot, hash }),
+                                point: {
+                                    let multiera_block =
+                                        MultiEraBlock::decode(&block.0).expect("Decoding failed");
+                                    match multiera_block {
+                                        MultiEraBlock::Byron(block) => {
+                                            Some(Point {
+                                                slot: block.header.consensus_data.0.slot,
+                                                hash: block.header.raw_cbor().to_vec()
+                                            })
+                                        }
+                                        MultiEraBlock::AlonzoCompatible(block, _) => {
+                                            Some(Point {
+                                                slot: block.header.header_body.slot,
+                                                hash: block.header.raw_cbor().to_vec()
+                                            })
+                                        }
+                                        MultiEraBlock::Babbage(block) => {
+                                            Some(Point {
+                                                slot: block.header.header_body.slot,
+                                                hash: block.header.raw_cbor().to_vec()
+                                            })
+                                        }
+                                        MultiEraBlock::EpochBoundary(block) => {
+                                            Some(Point {
+                                                slot: block.header.consensus_data.epoch_id,
+                                                hash: block.header.raw_cbor().to_vec()
+                                            })
+                                        }
+                                        MultiEraBlock::Conway(block) => {
+                                            Some(Point {
+                                                slot: block.header.header_body.slot,
+                                                hash: block.header.raw_cbor().to_vec()
+                                            })
+                                        }
+                                        _ => None,
+                                    }
                                 },
                                 block_cbor: {
                                     let multiera_block =
@@ -355,14 +385,16 @@ impl ClientWrapper {
                                     }
                                 },
                             },
-                            chainsync::NextResponse::RollBackward(point, tip) => NextResponse {
+                            chainsync::NextResponse::RollBackward(point, _) => NextResponse {
                                 action: 2,
-                                tip: match tip.0 {
+                                point: match &point {
                                     PallasPoint::Origin => Some(Point {
                                         slot: 0,
                                         hash: vec![],
                                     }),
-                                    PallasPoint::Specific(slot, hash) => Some(Point { slot, hash }),
+                                    PallasPoint::Specific(slot, hash) => Some(Point { 
+                                        slot: *slot, hash: hash.to_vec() 
+                                    }),
                                 },
                                 block_cbor: {
                                     let block = conway::Block {
@@ -415,7 +447,7 @@ impl ClientWrapper {
                             },
                             chainsync::NextResponse::Await => NextResponse {
                                 action: 3,
-                                tip: None,
+                                point: None,
                                 block_cbor: None,
                             },
                         },
@@ -423,7 +455,7 @@ impl ClientWrapper {
                             println!("chain_sync_next error: {:?}", e);
                             NextResponse {
                                 action: 0,
-                                tip: None,
+                                point: None,
                                 block_cbor: None,
                             }
                         }
@@ -451,17 +483,34 @@ impl ClientWrapper {
 
                     let next_response = match result {
                         Ok(next) => match next {
-                            chainsync::NextResponse::RollForward(header, tip) => {
+                            chainsync::NextResponse::RollForward(header, _) => {
                                 match MultiEraHeader::decode(header.variant, None, &header.cbor) {
                                     Ok(h) => NextResponse {
                                         action: 1,
-                                        tip: match tip.0 {
-                                            PallasPoint::Origin => Some(Point {
-                                                slot: 0,
-                                                hash: vec![],
-                                            }),
-                                            PallasPoint::Specific(slot, hash) => {
-                                                Some(Point { slot, hash })
+                                        point: match &h {
+                                            MultiEraHeader::BabbageCompatible(header) => {
+                                                Some(Point {
+                                                    slot: header.header_body.slot,
+                                                    hash: h.hash().to_vec()
+                                                })
+                                            }
+                                            MultiEraHeader::Byron(header) => {
+                                                Some(Point {
+                                                    slot: header.consensus_data.0.slot,
+                                                    hash: h.hash().to_vec()
+                                                })
+                                            }
+                                            MultiEraHeader::EpochBoundary(header) => {
+                                                Some(Point {
+                                                    slot: header.consensus_data.epoch_id,
+                                                    hash: h.hash().to_vec()
+                                                })
+                                            }
+                                            MultiEraHeader::ShelleyCompatible(header) => {
+                                                Some(Point {
+                                                    slot: header.header_body.slot,
+                                                    hash: h.hash().to_vec()
+                                                })
                                             }
                                         },
                                         block_cbor: {
@@ -517,20 +566,22 @@ impl ClientWrapper {
                                         println!("chain_sync_next error: {:?}", e);
                                         NextResponse {
                                             action: 0,
-                                            tip: None,
+                                            point: None,
                                             block_cbor: None,
                                         }
                                     }
                                 }
                             }
-                            chainsync::NextResponse::RollBackward(point, tip) => NextResponse {
+                            chainsync::NextResponse::RollBackward(point, _) => NextResponse {
                                 action: 2,
-                                tip: match tip.0 {
+                                point: match &point {
                                     PallasPoint::Origin => Some(Point {
                                         slot: 0,
                                         hash: vec![],
                                     }),
-                                    PallasPoint::Specific(slot, hash) => Some(Point { slot, hash }),
+                                    PallasPoint::Specific(slot, hash) => Some(Point {
+                                        slot: *slot, hash: hash.to_vec()
+                                    }),
                                 },
                                 block_cbor: match point {
                                     PallasPoint::Origin => ClientWrapper::fetch_block(
@@ -550,7 +601,7 @@ impl ClientWrapper {
                             },
                             chainsync::NextResponse::Await => NextResponse {
                                 action: 3,
-                                tip: None,
+                                point: None,
                                 block_cbor: None,
                             },
                         },
@@ -558,7 +609,7 @@ impl ClientWrapper {
                             println!("chain_sync_next error: {:?}", e);
                             NextResponse {
                                 action: 0,
-                                tip: None,
+                                point: None,
                                 block_cbor: None,
                             }
                         }

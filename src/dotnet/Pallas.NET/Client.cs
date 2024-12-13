@@ -103,7 +103,7 @@ public class Client
             else
             {
                 NextResponseAction nextResponseAction = (NextResponseAction)nextResponseRs.action;
-                Point tip = nextResponseRs.tip.ToPoint();
+                Point tip = nextResponseRs.point.ToPoint();
 
                 NextResponse nextResponse = nextResponseAction switch
                 {

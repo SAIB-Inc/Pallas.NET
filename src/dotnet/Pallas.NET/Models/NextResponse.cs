@@ -4,6 +4,6 @@ namespace Pallas.NET.Models;
 
 public record NextResponse(
     NextResponseAction Action,
-    Point Tip,
+    Point Point,
     byte[] BlockCbor
 );
