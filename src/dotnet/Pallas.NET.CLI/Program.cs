@@ -59,13 +59,13 @@ async void ExecuteN2cProtocol()
             Console.WriteLine(action);
 
             if (nextResponse.Action == NextResponseAction.RollBack)
-                {
+            {
                 Console.WriteLine("RollBack Intersection");
                 Console.WriteLine($"Slot: {nextResponse.Point.Slot} Hash: {nextResponse.Point.Hash}");
             }
 
             if (nextResponse.Action == NextResponseAction.RollForward)
-                {
+            {
                 Console.WriteLine("RollForward Intersection");
                 Console.WriteLine($"Slot: {nextResponse.Point.Slot} Hash: {nextResponse.Point.Hash}");
 
@@ -107,13 +107,13 @@ async void ExecuteN2nProtocol()
             Console.WriteLine(action);
 
             if (nextResponse.Action == NextResponseAction.RollBack)
-                {
+            {
                 Console.WriteLine("RollBack Intersection");
                 Console.WriteLine($"Slot: {nextResponse.Point.Slot} Hash: {nextResponse.Point.Hash}");
             }
 
             if (nextResponse.Action == NextResponseAction.RollForward)
-                {
+            {
                 Console.WriteLine("RollForward Intersection");
                 Console.WriteLine($"Slot: {nextResponse.Point.Slot} Hash: {nextResponse.Point.Hash}");
 
