@@ -4,9 +4,8 @@ use pallas::{
     ledger::{
         addresses::{Address, ByronAddress},
         primitives::conway::{self, VrfCert},
-        traverse::{MultiEraBlock, MultiEraHeader, MultiEraTx},
-    },
-    network::{
+        traverse::{MultiEraBlock, MultiEraHeader, MultiEraTx, OriginalHash},
+    }, network::{
         facades::{NodeClient, PeerClient},
         miniprotocols::{
             blockfetch,
@@ -16,7 +15,7 @@ use pallas::{
             Point as PallasPoint, MAINNET_MAGIC, PREVIEW_MAGIC, PRE_PRODUCTION_MAGIC,
             TESTNET_MAGIC,
         },
-    },
+    }
 };
 use rnet::{net, Net};
 use std::{ops::Deref, vec};
@@ -317,31 +316,31 @@ impl ClientWrapper {
                                         MultiEraBlock::Byron(block) => {
                                             Some(Point {
                                                 slot: block.header.consensus_data.0.slot,
-                                                hash: block.header.raw_cbor().to_vec()
+                                                hash: block.header.original_hash().to_vec()
                                             })
                                         }
                                         MultiEraBlock::AlonzoCompatible(block, _) => {
                                             Some(Point {
                                                 slot: block.header.header_body.slot,
-                                                hash: block.header.raw_cbor().to_vec()
+                                                hash: block.header.original_hash().to_vec()
                                             })
                                         }
                                         MultiEraBlock::Babbage(block) => {
                                             Some(Point {
                                                 slot: block.header.header_body.slot,
-                                                hash: block.header.raw_cbor().to_vec()
+                                                hash: block.header.original_hash().to_vec()
                                             })
                                         }
                                         MultiEraBlock::EpochBoundary(block) => {
                                             Some(Point {
                                                 slot: block.header.consensus_data.epoch_id,
-                                                hash: block.header.raw_cbor().to_vec()
+                                                hash: block.header.original_hash().to_vec()
                                             })
                                         }
                                         MultiEraBlock::Conway(block) => {
                                             Some(Point {
                                                 slot: block.header.header_body.slot,
-                                                hash: block.header.raw_cbor().to_vec()
+                                                hash: block.header.original_hash().to_vec()
                                             })
                                         }
                                         _ => None,

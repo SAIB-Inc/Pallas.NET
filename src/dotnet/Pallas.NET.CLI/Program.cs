@@ -32,15 +32,20 @@ async void ExecuteN2cProtocol()
     Client? client = new();
     Point? tip = await client.ConnectAsync(clientConnection, NetworkMagic.MAINNET, ClientType.N2C);
 
-    if (tip is not null)
-    {
-        Console.WriteLine($"Tip: {tip.Hash}");
-    }
-
     List<Point> points = 
     [
         new(140474748, "72028be5129ea06bf47c7939efdd93ee4d7364f61b2512c426ef68780ee80d81")
     ];
+
+    if (tip is not null)
+    {
+        Console.WriteLine($"Tip: {tip.Hash}");
+        Console.WriteLine("--------------------------------------------------------------------------------");
+    }
+    
+    Console.WriteLine("Current Intersection:");
+    Console.WriteLine($"Slot: {points.First().Slot} Hash: {points.First().Hash}");
+    Console.WriteLine("--------------------------------------------------------------------------------");
 
     await foreach (NextResponse? nextResponse in client.StartChainSyncAsync(points))
     {
@@ -51,27 +56,23 @@ async void ExecuteN2cProtocol()
         else if (nextResponse.Action == NextResponseAction.RollForward || nextResponse.Action == NextResponseAction.RollBack)
         {
             string action = nextResponse.Action == NextResponseAction.RollBack ? "Rolling back..." : "Rolling forward...";
-
             Console.WriteLine(action);
-            Console.WriteLine($"Slot: {nextResponse.Point.Slot} Hash: {nextResponse.Point.Hash}");
-            
-            // if (nextResponse.Action == NextResponseAction.RollForward)
-            // {
-            //     Console.WriteLine("Block:");
-            //     string cborHex = Convert.ToHexString(nextResponse.BlockCbor);
-            //     Console.WriteLine(cborHex);
-            // }
 
-            // if (nextResponse.Action == NextResponseAction.RollBack)
-            // {
-            //     Console.WriteLine("Block:");
-            //     string cborHex = Convert.ToHexString(nextResponse.BlockCbor);
-            //     Console.WriteLine(cborHex);
-            // }
+            if (nextResponse.Action == NextResponseAction.RollBack)
+                {
+                Console.WriteLine("RollBack Intersection");
+                Console.WriteLine($"Slot: {nextResponse.Point.Slot} Hash: {nextResponse.Point.Hash}");
+            }
+
+            if (nextResponse.Action == NextResponseAction.RollForward)
+                {
+                Console.WriteLine("RollForward Intersection");
+                Console.WriteLine($"Slot: {nextResponse.Point.Slot} Hash: {nextResponse.Point.Hash}");
+
+                Environment.Exit(0);
+            }
 
             Console.WriteLine("--------------------------------------------------------------------------------");
-            
-            Environment.Exit(0);
         }
     }
 }
@@ -80,18 +81,19 @@ async void ExecuteN2cProtocol()
 async void ExecuteN2nProtocol()
 {
     Client? n2nClient = new();
-    Point? tip = await n2nClient.ConnectAsync(nodeConnection, NetworkMagic.PREVIEW, ClientType.N2N);
+    Point? tip = await n2nClient.ConnectAsync(nodeConnection, NetworkMagic.MAINNET, ClientType.N2N);
+
+    List<Point> points = [new(140474748, "72028be5129ea06bf47c7939efdd93ee4d7364f61b2512c426ef68780ee80d81")];
 
     if (tip is not null)
     {
         Console.WriteLine($"Tip: {tip.Hash}");
+        Console.WriteLine("--------------------------------------------------------------------------------");
     }
-
-    List<Point> points = 
-    [
-        new(140474748, "72028be5129ea06bf47c7939efdd93ee4d7364f61b2512c426ef68780ee80d81"),
-        new(11127345, "17b1b002a854f4120385d760344db700599a3ceefab454051a226b11309b6417")
-    ];
+    
+    Console.WriteLine("Current Intersection:");
+    Console.WriteLine($"Slot: {points.First().Slot} Hash: {points.First().Hash}");
+    Console.WriteLine("--------------------------------------------------------------------------------");
 
     await foreach (NextResponse? nextResponse in n2nClient.StartChainSyncAsync(points))
     {
@@ -99,16 +101,24 @@ async void ExecuteN2nProtocol()
         {
             Console.WriteLine("Awaiting...");
         }
-        else if (nextResponse.Action == NextResponseAction.RollBack || nextResponse.Action == NextResponseAction.RollForward)
+        else if (nextResponse.Action == NextResponseAction.RollForward || nextResponse.Action == NextResponseAction.RollBack)
         {
             string action = nextResponse.Action == NextResponseAction.RollBack ? "Rolling back..." : "Rolling forward...";
-
             Console.WriteLine(action);
-            Console.WriteLine($"Slot: {nextResponse.Point.Slot} Hash: {nextResponse.Point.Hash}");
 
-            Console.WriteLine("Block:");
-            string cborHex = Convert.ToHexString(nextResponse.BlockCbor);
-            Console.WriteLine(cborHex);
+            if (nextResponse.Action == NextResponseAction.RollBack)
+                {
+                Console.WriteLine("RollBack Intersection");
+                Console.WriteLine($"Slot: {nextResponse.Point.Slot} Hash: {nextResponse.Point.Hash}");
+            }
+
+            if (nextResponse.Action == NextResponseAction.RollForward)
+                {
+                Console.WriteLine("RollForward Intersection");
+                Console.WriteLine($"Slot: {nextResponse.Point.Slot} Hash: {nextResponse.Point.Hash}");
+
+                Environment.Exit(0);
+            }
 
             Console.WriteLine("--------------------------------------------------------------------------------");
         }
@@ -116,8 +126,8 @@ async void ExecuteN2nProtocol()
 }
 
 // Test either Client or Node protocol
-await Task.Run(ExecuteN2cProtocol);
-// await Task.Run(ExecuteN2nProtocol);
+// await Task.Run(ExecuteN2cProtocol);
+await Task.Run(ExecuteN2nProtocol);
 
 while (true)
 {
