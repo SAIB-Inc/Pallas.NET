@@ -38,12 +38,13 @@
     </None>
   </ItemGroup>
 
-    <ItemGroup>
+  <ItemGroup>
     <Content Include="lib/libpallas_dotnet_rs.so">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <PackageCopyToOutput>true</PackageCopyToOutput>
       <PackagePath>runtimes/linux-x64/native</PackagePath>
       <pack>true</pack>
+      <Link>libpallas_dotnet_rs.so</Link>
     </Content>
   </ItemGroup>
 
@@ -53,6 +54,7 @@
       <PackageCopyToOutput>true</PackageCopyToOutput>
       <PackagePath>runtimes/osx-arm64/native</PackagePath>
       <pack>true</pack>
+      <Link>libpallas_dotnet_rs.dylib</Link>
     </Content>
   </ItemGroup>
 
