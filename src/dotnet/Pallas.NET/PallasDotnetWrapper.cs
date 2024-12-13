@@ -26,7 +26,7 @@ namespace PallasDotnetRs
             public List<byte> blockCbor;
         }
         public struct ClientWrapper {
-            public byte client;
+            public byte clientType;
             public UIntPtr clientPtr;
         }
         public struct PallasUtility {
@@ -50,9 +50,9 @@ namespace PallasDotnetRs
         public static ClientWrapper Connect(
             string pathOrServer,
             ulong networkMagic,
-            byte client
+            byte clientType
         ) {
-            return (_FnConnect(_AllocStr(pathOrServer),networkMagic,client)).Decode();
+            return (_FnConnect(_AllocStr(pathOrServer),networkMagic,clientType)).Decode();
         }
         public static List<List<byte>> GetUtxoByAddressCbor(
             ClientWrapper clientWrapper,
@@ -149,17 +149,17 @@ namespace PallasDotnetRs
         }
         [StructLayout(LayoutKind.Sequential)]
         private struct _StructClientWrapper {
-            public byte client;
+            public byte clientType;
             public UIntPtr clientPtr;
             public static _StructClientWrapper Encode(ClientWrapper structArg) {
                 return new _StructClientWrapper {
-                    client = structArg.client,
+                    clientType = structArg.clientType,
                     clientPtr = structArg.clientPtr
                 };
             }
             public ClientWrapper Decode() {
                 return new ClientWrapper {
-                    client = this.client,
+                    clientType = this.clientType,
                     clientPtr = this.clientPtr
                 };
             }
@@ -191,7 +191,7 @@ namespace PallasDotnetRs
         private static extern _StructClientWrapper _FnConnect(
             _RawSlice pathOrServer,
             ulong networkMagic,
-            byte client
+            byte clientType
         );
         [DllImport("pallas_dotnet_rs", EntryPoint = "rnet_export_get_utxo_by_address_cbor", CallingConvention = CallingConvention.Cdecl)]
         private static extern _RawSlice _FnGetUtxoByAddressCbor(
