@@ -1,10 +1,10 @@
 use lazy_static::lazy_static;
 use pallas::{
-    codec::utils::KeyValuePairs,
+    codec::{minicbor::{self, Decode, Encode}, utils::KeyValuePairs},
     ledger::{
         addresses::{Address, ByronAddress},
         primitives::conway::{self, VrfCert},
-        traverse::{MultiEraBlock, MultiEraHeader, MultiEraTx},
+        traverse::{Era, MultiEraHeader, MultiEraTx},
     },
     network::{
         facades::{NodeClient, PeerClient},
@@ -51,6 +51,14 @@ impl NetworkMagic {
     pub fn pre_production_magic() -> u64 {
         PRE_PRODUCTION_MAGIC
     }
+}
+
+#[derive(Encode, Decode)]
+struct EncodableBlockWrapper<T> {
+    #[n(0)]
+    era_id: u16,
+    #[n(1)]
+    block: T,
 }
 
 #[derive(Net)]
@@ -353,22 +361,7 @@ impl ClientWrapper {
                                     }),
                                     PallasPoint::Specific(slot, hash) => Some(Point { slot, hash }),
                                 },
-                                block_cbor: {
-                                    let multiera_block =
-                                        MultiEraBlock::decode(&block.0).expect("Decoding failed");
-                                    match multiera_block {
-                                        MultiEraBlock::Byron(block) => Some(encode_block(&block)),
-                                        MultiEraBlock::AlonzoCompatible(block, _) => {
-                                            Some(encode_block(&block))
-                                        }
-                                        MultiEraBlock::Babbage(block) => Some(encode_block(&block)),
-                                        MultiEraBlock::EpochBoundary(block) => {
-                                            Some(encode_block(&block))
-                                        }
-                                        MultiEraBlock::Conway(block) => Some(encode_block(&block)),
-                                        _ => None,
-                                    }
-                                },
+                                block_cbor: Some(block.0),
                             },
                             chainsync::NextResponse::RollBackward(point, tip) => NextResponse {
                                 action: 2,
@@ -422,7 +415,12 @@ impl ClientWrapper {
                                         ),
                                     };
 
-                                    let block_cbor = pallas::codec::minicbor::to_vec(&block)
+                                    let encodable_multi_era_block = EncodableBlockWrapper {
+                                        era_id: Era::Conway as u16 + 1,
+                                        block,
+                                    };
+
+                                    let block_cbor = minicbor::to_vec(&encodable_multi_era_block)
                                         .expect("Serialization failed");
 
                                     Some(block_cbor)
@@ -489,27 +487,7 @@ impl ClientWrapper {
                                             )
                                             .expect("Failed to fetch block");
 
-                                            let multiera_block = MultiEraBlock::decode(&block)
-                                                .expect("Decoding failed");
-
-                                            match multiera_block {
-                                                MultiEraBlock::Byron(block) => {
-                                                    Some(encode_block(&block))
-                                                }
-                                                MultiEraBlock::AlonzoCompatible(block, _) => {
-                                                    Some(encode_block(&block))
-                                                }
-                                                MultiEraBlock::Babbage(block) => {
-                                                    Some(encode_block(&block))
-                                                }
-                                                MultiEraBlock::EpochBoundary(block) => {
-                                                    Some(encode_block(&block))
-                                                }
-                                                MultiEraBlock::Conway(block) => {
-                                                    Some(encode_block(&block))
-                                                }
-                                                _ => None,
-                                            }
+                                            Some(block)
                                         },
                                     },
                                     Err(e) => {
@@ -532,7 +510,7 @@ impl ClientWrapper {
                                     PallasPoint::Specific(slot, hash) => Some(Point { slot, hash }),
                                 },
                                 block_cbor: {
-                                    let multiera_cbor = match point {
+                                    match point {
                                         PallasPoint::Origin => ClientWrapper::fetch_block(
                                             &mut client.blockfetch,
                                             Point {
@@ -546,25 +524,6 @@ impl ClientWrapper {
                                                 Point { slot, hash },
                                             )
                                         }
-                                    };
-                                    
-                                    let multiera_cbor = multiera_cbor.unwrap();
-                                    let multi_era_block = MultiEraBlock::decode(&multiera_cbor)
-                                        .expect("Decoding failed");
-
-                                    
-
-                                    match multi_era_block {
-                                        MultiEraBlock::Byron(block) => Some(encode_block(&block)),
-                                        MultiEraBlock::AlonzoCompatible(block, _) => {
-                                            Some(encode_block(&block))
-                                        }
-                                        MultiEraBlock::Babbage(block) => Some(encode_block(&block)),
-                                        MultiEraBlock::EpochBoundary(block) => {
-                                            Some(encode_block(&block))
-                                        }
-                                        MultiEraBlock::Conway(block) => Some(encode_block(&block)),
-                                        _ => None,
                                     }
                                 },
                             },

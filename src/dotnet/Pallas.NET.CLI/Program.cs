@@ -23,7 +23,7 @@ var configuration = new ConfigurationBuilder()
     .Build();
 
 // Set client/node connection config
-string clientConnection = configuration["CardanoClientConnection"] ?? "/Users/gantuangcoc98/.dmtr/tmp/nebulous-audience-903991/mainnet-mr1dcc.socket";
+string clientConnection = configuration["CardanoClientConnection"] ?? "/tmp/mainnet-node.socket";
 string nodeConnection = configuration["CardanoNodeConnection"] ?? "1.tcp.ap.ngrok.io:25317";
 
 // N2C Protocol Implementation
